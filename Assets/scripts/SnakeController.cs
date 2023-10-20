@@ -38,6 +38,10 @@ public class SnakeController : MonoBehaviour , ICoordinate
     // the direction the snake is currently moving
     private Direction movementDirection = Direction.Up;
 
+    // used for growing the snake body
+    private Vector3 previousTailPosition;
+    private Quaternion previousTailRotation;
+
     public int Length {
         get {
             // Length is body count + head + tail
@@ -74,10 +78,43 @@ public class SnakeController : MonoBehaviour , ICoordinate
 
             //collisions checks
             // did we hit a collectable
-            // did we hit an obstacle
             GameManager.Instance.GameBoard.CheckCollision(this);
-
+            // did we hit an obstacle
+            if (GameManager.Instance.GameBoard.IsOutOfBounds(this) || DoesCollideWithItself()) {
+                Debug.Log("GameOver");
+                Time.timeScale = 0; // pauses the game by setting time scale to 0
+            };
         }
+    }
+
+    private bool DoesCollideWithItself() {
+        int tailX = (int)tail.transform.position.x;
+        int tailY = (int)tail.transform.position.y;
+        if (X == tailX && Y == tailY) { 
+            // head hit tail
+            return true; 
+        }
+        foreach (GameObject bodypieces in body) {
+            int bodyX = (int)bodypieces.transform.position.x;
+            int bodyY = (int)bodypieces.transform.position.y;
+            if (X == bodyX && Y == bodyY) {
+                //hit body 
+                return true;
+            }
+        }
+        return false;
+
+    }
+    #endregion
+
+
+    public void Grow() {
+        GameObject bodypiece = InstantiatePrefab(bodyPrefab, tail.transform.position, tail.transform.rotation, transform);
+        tail.transform.position = previousTailPosition;
+        tail.transform.rotation = previousTailRotation;
+
+        GameManager.Instance.GameBoard.ReserveCell((int)tail.transform.position.x, (int)tail.transform.position.y);
+        body.Add(bodypiece);
     }
 
     private void MovementDirection(Direction movementDirection) {
@@ -86,10 +123,15 @@ public class SnakeController : MonoBehaviour , ICoordinate
         GameObject currentBodyPart = body[parentIndex];
         // release the tails cell
         GameManager.Instance.GameBoard.ReleaseCell((int)tail.transform.position.x, (int)tail.transform.position.y);
+
+        // Cache Tails pervious location and rotataion
+        previousTailPosition = tail.transform.position;
+        previousTailRotation = tail.transform.rotation;
+
         // move the tail to the last body parts location and rotation.
         tail.transform.position = currentBodyPart.transform.position;
         tail.transform.rotation = currentBodyPart.transform.rotation;
-
+        
         // move the other body parts
         for(int i = parentIndex; i >= 0; i--) {
             parentIndex--;
@@ -171,7 +213,6 @@ public class SnakeController : MonoBehaviour , ICoordinate
         }
     }
 
-    #endregion
 
     private void SetTimer() {
         // speed = distance/time  => time = distance / speed.

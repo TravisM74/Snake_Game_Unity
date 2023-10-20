@@ -62,6 +62,7 @@ public class Board : MonoBehaviour
 
         Vector3 position = new Vector3(cell.X, cell.Y, 0);
         apple = Instantiate(applePrefab,position,Quaternion.identity,transform);
+        apple.Setup();
         ReserveCell(cell);
     }
 
@@ -72,6 +73,14 @@ public class Board : MonoBehaviour
             apple.OnCollect(snake);
         }
 
+    }
+
+    public bool IsOutOfBounds(ICoordinate coordinate) {
+        return (coordinate.X < minX 
+            || coordinate.Y < minY 
+            || coordinate.X >= maxX 
+            || coordinate.Y >= maxY);
+        
     }
 
     #region Grid Functionality
