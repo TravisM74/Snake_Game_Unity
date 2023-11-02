@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using UnityEngine;
+using TMPro;
 
 public class Collectable : MonoBehaviour, ICoordinate
 {
     public int score = 1;
-    private Renderer renderer;
+    private new Renderer renderer;
     private Canvas canvas;
 
     public AnimationClip animationClip;
@@ -25,6 +26,11 @@ public class Collectable : MonoBehaviour, ICoordinate
         if (canvas == null) {
             Debug.LogError("Canvas not found on Collectable!");
         }
+        TMP_Text  scoreText = GetComponentInChildren<TMP_Text>(includeInactive:true);
+        if (scoreText != null) {
+            scoreText.text = score.ToString();
+        }
+
     }
     
     public void OnCollect(SnakeController snake) {
@@ -35,21 +41,33 @@ public class Collectable : MonoBehaviour, ICoordinate
         snake.Grow();
 
         // 3. notifiy gameboard the apple has been collected.
-        GameManager.Instance.GameBoard.NotifyItemCollected(this);
+        LevelController.Current.GameBoard.NotifyItemCollected(this);
 
         // 4. Hide the apple
         renderer.enabled = false;
 
-        //5. inabale in world UI for the collectable
+        // 5. Enabale in world UI for the collectable
         canvas.gameObject.SetActive(true);
 
-        // 5. destroy the collectable
-        StartCoroutine(DestoryCollectable()); 
+        // 6. play collect sound
+        //AudioSource audio = GetComponent<AudioSource>();
+        //if (audio != null) {
+        //    audio.Play();
+        //}
+        AudioSource audio = GetComponent<AudioSource>();
+        if (audio != null) {
+            GameManager.Instance.AudioManager.PlaySoundEffect(audio, SoundEffectType.Collect);
+
+        }
+
+
+        // 7. destroy the collectable
+        StartCoroutine(DestoryCollectible()); 
 
        
     }
 
-    private IEnumerator DestoryCollectable() {
+    private IEnumerator DestoryCollectible() {
         
 
         yield return new WaitForSeconds(animationClip.length);  // waits for animation clip duration

@@ -78,11 +78,12 @@ public class SnakeController : MonoBehaviour , ICoordinate
 
             //collisions checks
             // did we hit a collectable
-            GameManager.Instance.GameBoard.CheckCollision(this);
+            LevelController.Current.GameBoard.CheckCollision(this);
             // did we hit an obstacle
-            if (GameManager.Instance.GameBoard.IsOutOfBounds(this) || DoesCollideWithItself()) {
+            if (LevelController.Current.GameBoard.IsOutOfBounds(this) || DoesCollideWithItself()) {
                 Debug.Log("GameOver");
-                Time.timeScale = 0; // pauses the game by setting time scale to 0
+                //Time.timeScale = 0; // pauses the game by setting time scale to 0
+                GameManager.Instance.Go(GameStateBase.Type.GameOver);
             };
         }
     }
@@ -113,7 +114,7 @@ public class SnakeController : MonoBehaviour , ICoordinate
         tail.transform.position = previousTailPosition;
         tail.transform.rotation = previousTailRotation;
 
-        GameManager.Instance.GameBoard.ReserveCell((int)tail.transform.position.x, (int)tail.transform.position.y);
+        LevelController.Current.GameBoard.ReserveCell((int)tail.transform.position.x, (int)tail.transform.position.y);
         body.Add(bodypiece);
     }
 
@@ -122,7 +123,7 @@ public class SnakeController : MonoBehaviour , ICoordinate
         int parentIndex = body.Count - 1;
         GameObject currentBodyPart = body[parentIndex];
         // release the tails cell
-        GameManager.Instance.GameBoard.ReleaseCell((int)tail.transform.position.x, (int)tail.transform.position.y);
+        LevelController.Current.GameBoard.ReleaseCell((int)tail.transform.position.x, (int)tail.transform.position.y);
 
         // Cache Tails pervious location and rotataion
         previousTailPosition = tail.transform.position;
@@ -173,7 +174,7 @@ public class SnakeController : MonoBehaviour , ICoordinate
         }
         Vector3 movement = new Vector3(dx, dy, 0);
         head.transform.position += movement;
-        GameManager.Instance.GameBoard.ReserveCell((int)head.transform.position.x, (int)head.transform.position.y);
+        LevelController.Current.GameBoard.ReserveCell((int)head.transform.position.x, (int)head.transform.position.y);
 
         // Setting the head rotation converting Euler to Quaternion
         head.transform.rotation = Quaternion.Euler(0, 0, rotationZ);
@@ -240,7 +241,7 @@ public class SnakeController : MonoBehaviour , ICoordinate
 
     private GameObject InstantiatePrefab (GameObject prefab, Vector3 position, Quaternion rotation, Transform parent) {
         GameObject obj = Instantiate(prefab, position, rotation, parent);
-        if (!GameManager.Instance.GameBoard.ReserveCell((int)obj.transform.position.x, (int)obj.transform.position.y)) {
+        if (!LevelController.Current.GameBoard.ReserveCell((int)obj.transform.position.x, (int)obj.transform.position.y)) {
             Debug.LogError($"cant reserve cell for object {obj}");
         }
         return obj;

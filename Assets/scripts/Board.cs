@@ -18,7 +18,7 @@ public class Board : MonoBehaviour
     private int minY = 0;
     private int maxY = 0;
 
-    private bool isInitialised = false;
+
 
     private Collectable apple; 
 
@@ -54,7 +54,7 @@ public class Board : MonoBehaviour
     public void Setup() {
        
         InitialiseGrid();
-        isInitialised = true;
+
     }
 
     public void CreateApple() {
