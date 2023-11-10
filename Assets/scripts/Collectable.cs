@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
+
 using UnityEngine;
 using TMPro;
 
@@ -11,10 +11,14 @@ public class Collectable : MonoBehaviour, ICoordinate
     private Canvas canvas;
 
     public AnimationClip animationClip;
+    public ParticleSystem collectEffectPrefab;
 
     public int X { get { return (int)transform.position.x; } }
     public int Y { get { return (int)transform.position.y; } }
   
+  public virtual bool ShouldCollectCreateNew{
+    get { return true;}
+  }
 
     public void Setup() {
         renderer = gameObject.GetComponent<Renderer>();
@@ -33,7 +37,7 @@ public class Collectable : MonoBehaviour, ICoordinate
 
     }
     
-    public void OnCollect(SnakeController snake) {
+    public virtual void OnCollect(SnakeController snake) {
         // 1. give player score 
         GameManager.Instance.AddScore(score);
 
@@ -41,10 +45,13 @@ public class Collectable : MonoBehaviour, ICoordinate
         snake.Grow();
 
         // 3. notifiy gameboard the apple has been collected.
-        LevelController.Current.GameBoard.NotifyItemCollected(this);
+        
+            LevelController.Current.GameBoard.NotifyItemCollected(this);
+
 
         // 4. Hide the apple
         renderer.enabled = false;
+        float waitTime = animationClip.length;
 
         // 5. Enabale in world UI for the collectable
         canvas.gameObject.SetActive(true);
@@ -57,20 +64,26 @@ public class Collectable : MonoBehaviour, ICoordinate
         AudioSource audio = GetComponent<AudioSource>();
         if (audio != null) {
             GameManager.Instance.AudioManager.PlaySoundEffect(audio, SoundEffectType.Collect);
-
         }
 
+        // 6.5 partical effects played
+        if (collectEffectPrefab != null) {
+            ParticleSystem collectEffect = Instantiate(collectEffectPrefab, transform);
+            collectEffect.Play(withChildren: true);
+            if (collectEffect.main.duration >  waitTime){
+                waitTime = collectEffect.main.duration;
+            }
+        }
 
         // 7. destroy the collectable
-        StartCoroutine(DestoryCollectible()); 
+        StartCoroutine(DestoryCollectible(waitTime)); 
 
        
     }
 
-    private IEnumerator DestoryCollectible() {
+    private IEnumerator DestoryCollectible(float waitTime) {
         
-
-        yield return new WaitForSeconds(animationClip.length);  // waits for animation clip duration
+        yield return new WaitForSeconds(waitTime);  // waits for animation clip duration
         Destroy(gameObject);
     }
 }

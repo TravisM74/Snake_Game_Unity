@@ -11,6 +11,10 @@ public class Board : MonoBehaviour
     private List<Cell> freeCells = new List<Cell>();
 
     public Collectable applePrefab;
+    public Collectable barPrefab;
+
+    public float barSpawnInterval = 1f;
+    public float barSpawnOffset = 1f;
 
     private Renderer backgroundRenderer;
     private int minX = 0;
@@ -21,6 +25,8 @@ public class Board : MonoBehaviour
 
 
     private Collectable apple; 
+    private Collectable bar;
+    private Timer barTimer;
 
     #region Unity messages
 
@@ -30,7 +36,10 @@ public class Board : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (barTimer.IsCompleted){
+            // instantiate the powerup 
+            CreateBar();
+        }
     }
 
     private void Reset() {
@@ -54,25 +63,69 @@ public class Board : MonoBehaviour
     public void Setup() {
        
         InitialiseGrid();
+        InitialiseBarTimer();
 
+    }
+
+    private void InitialiseBarTimer()
+    {
+       if (barTimer == null){
+            barTimer = GetComponent<Timer>();
+            if (barTimer == null){
+                barTimer = gameObject.AddComponent<Timer>();
+            }
+       }
+       float randomOffset = Random.Range(-barSpawnOffset, barSpawnOffset);
+       float instantiateTime = barSpawnInterval + randomOffset;
+       barTimer.Set(instantiateTime);
+       barTimer.Run();
     }
 
     public void CreateApple() {
-        Cell cell = GetRandomFreeCell();
-
-        Vector3 position = new Vector3(cell.X, cell.Y, 0);
-        apple = Instantiate(applePrefab,position,Quaternion.identity,transform);
-        apple.Setup();
-        ReserveCell(cell);
+        apple = InstantiateCollectable(applePrefab);  
     }
 
-    public void CheckCollision(SnakeController snake) {
-        // did the snake hit an apple
-        if (snake.X == apple.X && snake.Y == apple.Y) {
-            // snake collided with the apple
-            apple.OnCollect(snake);
+    public void CreateBar(){
+        if(bar is null){
+            bar =  InstantiateCollectable(barPrefab);  
         }
 
+        barTimer.Reset();
+        barTimer.Run();
+
+
+    }
+    private Collectable InstantiateCollectable (Collectable prefab){
+
+        Cell cell = GetRandomFreeCell();
+        Vector3 position = new Vector3(cell.X, cell.Y, 0);
+        Collectable collectable = Instantiate(prefab, position, Quaternion.identity,transform);
+        collectable.Setup();
+        ReserveCell(cell);
+        return collectable;
+
+    } 
+
+
+    public void CheckCollision(SnakeController snake)
+    {
+            // did the snake hit an apple
+        CheckCollisionWithCollectable(snake, apple);
+        // did the snake collide with a bar
+        if (bar != null){
+            CheckCollisionWithCollectable(snake, bar);
+
+        }
+
+    }
+
+    private void CheckCollisionWithCollectable(SnakeController snake,Collectable collectable)
+    {
+        if (snake.X == collectable.X && snake.Y == collectable.Y)
+        {
+            // snake collided with the apple
+            collectable.OnCollect(snake);
+        }
     }
 
     public bool IsOutOfBounds(ICoordinate coordinate) {
@@ -171,7 +224,11 @@ public class Board : MonoBehaviour
     public void NotifyItemCollected(Collectable collectable) {
       
         //TODO: Releasing the collected apple cell is done by the snake passing over it
-       
-        CreateApple();
+        if (collectable.ShouldCollectCreateNew){
+            CreateApple();
+        }
+        if (collectable == bar){
+            bar = null;
+        }
     }
 }

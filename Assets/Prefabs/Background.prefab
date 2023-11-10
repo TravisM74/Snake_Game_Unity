@@ -98,3 +98,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   applePrefab: {fileID: 5953081743892509170, guid: 1cea6a263e4b4e249bdf5cafd948e93c, type: 3}
+  barPrefab: {fileID: 366557596004077135, guid: d5359bff775b79e46a81b19383da34d9, type: 3}
+  barSpawnInterval: 10
+  barSpawnOffset: 2

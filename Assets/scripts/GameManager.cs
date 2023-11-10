@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -38,6 +39,11 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    public bool IsNewHighScore {
+        get;
+        set;
+    }
+
     public AudioManager AudioManager{
         get;
         private set;
@@ -66,6 +72,7 @@ public class GameManager : MonoBehaviour {
         // TODO: add any additional initalisation here.
         DontDestroyOnLoad(gameObject);
 
+    
         InitialiseAudioManager();
         InitializeGameStateSystem();
 
@@ -108,6 +115,7 @@ public class GameManager : MonoBehaviour {
 
     public void Reset() {
         Score = 0;
+        IsNewHighScore = false; 
     }
 
     public bool AddScore (int score) {

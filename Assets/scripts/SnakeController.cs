@@ -82,6 +82,13 @@ public class SnakeController : MonoBehaviour , ICoordinate
             // did we hit an obstacle
             if (LevelController.Current.GameBoard.IsOutOfBounds(this) || DoesCollideWithItself()) {
                 Debug.Log("GameOver");
+
+                int highscore = PlayerPrefs.GetInt(Config.HighScoreKey, 0);
+                if (GameManager.Instance.Score > highscore){
+                    GameManager.Instance.IsNewHighScore = true;
+                    // updates the high score value
+                   PlayerPrefs.SetInt(Config.HighScoreKey, GameManager.Instance.Score) ;
+                }
                 //Time.timeScale = 0; // pauses the game by setting time scale to 0
                 GameManager.Instance.Go(GameStateBase.Type.GameOver);
             };
@@ -116,6 +123,13 @@ public class SnakeController : MonoBehaviour , ICoordinate
 
         LevelController.Current.GameBoard.ReserveCell((int)tail.transform.position.x, (int)tail.transform.position.y);
         body.Add(bodypiece);
+    }
+
+    
+    public void SpeedUp(float speedIncrease)
+    {
+        // Increase the snakes speed.
+        speed += speedIncrease;
     }
 
     private void MovementDirection(Direction movementDirection) {
@@ -263,4 +277,5 @@ public class SnakeController : MonoBehaviour , ICoordinate
 
         return new Vector2 (horizontal, vertical);
     }
+
 }
